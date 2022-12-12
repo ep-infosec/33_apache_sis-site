@@ -1,0 +1,121 @@
+/*!
+ * Licensed under the Apache License v2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
+ */
+body {
+  padding-top: 3.5rem;
+  padding-bottom: 1.5rem;
+}
+img.apache-con {
+  width: auto;
+  height: 2.5rem;
+}
+img.sis-logo {
+  width: auto;
+  height: 4rem;
+  margin-right: 2rem;
+}
+p.page-title {
+  font-size: 2.5rem;
+  font-weight: bolder;
+  text-align: left;
+  margin-top: 2rem;
+  padding-bottom: 0.75rem;
+}
+main h1 {
+  margin-top: 3rem;
+  margin-bottom: 2rem;
+  border-bottom: 2px solid rgb(192, 192, 192);
+}
+main h2 {
+  margin-top: 2rem;
+}
+main p {
+  text-align: justify;
+}
+main a {
+  text-decoration: none;
+  color: #1f618d;
+}
+main abbr[title] {
+  text-decoration: none;
+}
+pre, code {
+  /* Avoid Monaco font, since box (or tree) symbols do not render well. */
+  font-family: Menlo,Consolas,"Courier New",monospace;
+}
+main pre {
+  /* Shall be small enough for avoiding space between box (or tree) symbols. */
+  line-height:    1.25;
+  border-left:    0.25rem solid gray;
+  padding-left:   1rem;
+  padding-top:    0.5rem;
+  padding-bottom: 0.5rem;
+}
+main code {
+  color: inherit;
+  background-color: inherit;
+  border: none;
+  padding: 2px 2px;
+}
+main table {
+  background-color: #F4F8FF;
+  border-color:     Black;
+  border-style:     solid;
+  border-width:     1px;
+  border-spacing:   0;
+  margin:           12px 0 12px 0;
+  padding:          0;
+  width:            auto;
+}
+main table tr th {
+  background-color:    #B9DCFF;
+  border-bottom-color: Black;
+  border-bottom-style: solid;
+  border-bottom-width: 1px;
+  padding:             3px;
+}
+main table tr td {
+  padding: 0px 9px;
+  vertical-align: text-top;
+}
+div.warning {
+  color:        crimson;
+  background:   lightyellow;
+  border-color: lightcoral;
+  border-style: solid;
+  border-width: 2px;
+  padding:      9px;
+  margin:      21px;
+}
+div.carousel-inner {
+  text-align: center;
+  margin:     auto;
+}
+div.carousel-inner img {
+  margin: auto;
+}
+div.carousel-caption {
+  position: relative;
+  left:     auto;
+  right:    auto;
+}
+div.carousel-caption h5 {
+  color: SteelBlue;
+}
+.carousel-control-next-icon,
+.carousel-control-prev-icon {
+  filter: invert(1);
+}
+.footer {
+  padding-top: 1rem;
+  font-size: smaller;
+  color: gray;
+}
+.footer p {
+  text-align: center;
+}
+.footer a {
+  text-decoration: none;
+  color: gray;
+}

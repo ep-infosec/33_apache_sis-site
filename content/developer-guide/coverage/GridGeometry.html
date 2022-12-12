@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html>
+
+<!--
+  Licensed to the Apache Software Foundation (ASF) under one
+  or more contributor license agreements.  See the NOTICE file
+  distributed with this work for additional information
+  regarding copyright ownership.  The ASF licenses this file
+  to you under the Apache License, Version 2.0 (the
+  "License"); you may not use this file except in compliance
+  with the License.  You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing,
+  software distributed under the License is distributed on an
+  "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+  KIND, either express or implied.  See the License for the
+  specific language governing permissions and limitations
+  under the License.
+-->
+
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:xi="http://www.w3.org/2001/XInclude" xml:lang="en">
+  <head>
+    <title>GridGeometry</title>
+    <meta charset="UTF-8"/>
+    <link rel="stylesheet" type="text/css" href="../book.css"/>
+  </head>
+  <body>
+    <!--
+      Content below this point is copied in "/asf-staging/book/en/developer-guide.html" file
+      by the `org.apache.sis.internal.book.Assembler` class in `sis-build-helper` module.
+    -->
+    <section>
+      <header>
+        <h2 id="GridGeometry">Grid coverage domain</h2>
+      </header>
+      <p>
+        The domain of a coverage is the set of valid input values.
+        In Apache <abbr>SIS</abbr>, the domain of grid coverages is described by the <code>Grid­Geometry</code> class.
+        This class contains the following information:
+      </p>
+      <ul>
+        <li>A grid extent (a.k.a. <dfn>grid envelope</dfn>), often inferred from the image size in pixels.</li>
+        <li>A <dfn>grid to <abbr>CRS</abbr></dfn> conversion, typically as a scale followed by a translation.</li>
+        <li>A georeferenced envelope, which can be inferred from the grid extent and the <dfn>grid to <abbr>CRS</abbr></dfn> conversion.</li>
+        <li>A Coordinate Reference System (<abbr>CRS</abbr>) which is the target of the <dfn>grid to CRS</dfn> conversion.</li>
+        <li>An <em>estimation</em> of grid resolution along each <abbr>CRS</abbr> axes.</li>
+        <li>An indication of whether conversion for some axes is linear or not.</li>
+      </ul>
+      <p>
+        One of the most important property listed above is the <dfn>grid to <abbr>CRS</abbr></dfn> conversion,
+        which defines how to map pixel coordinates to "real world" coordinates such as latitudes and longitudes.
+        This relationship is often linear (an affine transform), but not necessarily;
+        <code>GridGeometry</code> accepts non-linear conversions as well.
+      </p>
+
+      <xi:include href="AffineTransform.html"/>
+    </section>
+  </body>
+</html>

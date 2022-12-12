@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html>
+
+<!--
+  Licensed to the Apache Software Foundation (ASF) under one
+  or more contributor license agreements.  See the NOTICE file
+  distributed with this work for additional information
+  regarding copyright ownership.  The ASF licenses this file
+  to you under the Apache License, Version 2.0 (the
+  "License"); you may not use this file except in compliance
+  with the License.  You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing,
+  software distributed under the License is distributed on an
+  "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+  KIND, either express or implied.  See the License for the
+  specific language governing permissions and limitations
+  under the License.
+-->
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+  <head>
+    <title>GeoAPI</title>
+    <meta charset="UTF-8"/>
+    <link rel="stylesheet" type="text/css" href="../book.css"/>
+  </head>
+  <body>
+    <!--
+      Content below this point is copied in "/asf-staging/book/en/developer-guide.html" file
+      by the `org.apache.sis.internal.book.Assembler` class in `sis-build-helper` module.
+    -->
+    <section>
+      <header>
+        <h3 id="GeoAPI">From conceptual models to Java interfaces: GeoAPI</h3>
+      </header>
+      <p>
+        The <a href="http://www.geoapi.org">GeoAPI</a> project offers a set of Java interfaces for geospatial applications.
+        In a series of <code>org.opengis.*</code> packages, GeoAPI defines structures representing metadata,
+        coordinate reference systems and operations that perform cartographic projections.
+        In a part that is not yet standardized — called <i>pending</i> — GeoAPI defines structures that represent geo-referenced images,
+        geometries, filters that can be applied to queries, and other features.
+        These interfaces closely follow the specifications of the <abbr>OGC</abbr>, while interpreting and adapting them
+        to meet the needs of Java developers — for example, conforming with naming conventions.
+        These interfaces benefit both client applications and libraries:
+      </p>
+      <ul>
+        <li><p>
+          Developers of client applications benefit from the greater knowledge base available on the Internet
+          (due to the many publications related to <abbr>OGC</abbr> standards), as well as increased interoperability.
+          Interoperability is facilitated by a better separation between applications that <em>call</em> GeoAPI functions,
+          and libraries that <em>implement</em> GeoAPI.
+          The separation is similar to that offered by the <a href="http://docs.oracle.com/javase/8/docs/technotes/guides/jdbc/"><abbr>JDBC</abbr></a> (<i>Java Database Connectivity</i>) interfaces of standard Java.
+          Using the interfaces’ <abbr>API</abbr>, developers can ignore the underlying implementation.
+          For example, they can perform cartographic projections with the help of the <a href="http://www.geoapi.org/geoapi-proj4/index.html">Proj.4</a> library, or the Apache <abbr>SIS</abbr> library,
+          without having to change their programs when they change libraries.
+        </p></li>
+        <li><p>
+          The developers of libraries inherit the expertise of the specifications’ authors, via the models that represent interfaces.
+          GeoAPI also provides a framework within which developers can prioritize the implementation of the features they most need,
+          while leaving the remaining features as extension points for future developments.
+          For example, clients can call a GeoAPI function even if it is not yet supported by the library,
+          and simply get a null value until a new version of the library returns a relevant value.
+        </p></li>
+      </ul>
+
+
+      <details>
+        <summary>More about the GeoAPI project</summary>
+        <article id="GeoAPI-history">
+          <header>
+            <h2>GeoAPI project history</h2>
+          </header>
+          <p>
+            In 2001, the Open GIS Consortium (the former name of the Open Geospatial Consortium) published
+            <a href="https://www.ogc.org/standards/ct"><abbr>OGC</abbr> implementation specification 01-009:
+            <cite>Coordinate Transformation Services</cite></a>.
+            This specification, developed by the Computer Aided Development Corporation (Cadcorp),
+            was accompanied by <abbr>COM</abbr>, <abbr>CORBA</abbr>, and Java interfaces.
+            At this time, the wave of web services had not yet eclipsed classical programming interfaces.
+            The interfaces of the <abbr>OGC</abbr> did anticipate a networked world,
+            but invested rather — in the case of Java — in <abbr>RMI</abbr> (<i>Remote Method Invocation</i>) technology.
+            As the GeoAPI project did not yet exist, we retroactively designate these historical interfaces “<a href="http://www.geoapi.org/0.1/index.html">GeoAPI 0.1</a>”.
+            These interfaces already used the package name <code>org.opengis</code>, which would be adopted by GeoAPI.
+          </p><p>
+            In 2002, developers of free projects launched a
+            <a href="http://web.archive.org/web/20030509104308/http://digitalearth.org/story/2002/10/10/55046/206">call for the creation of a geospatial <abbr>API</abbr></a>.
+            The initial proposal attracted the interest of at least five free projects.
+            The project was created using <a href="http://sourceforge.net/projects/geoapi/">SourceForge</a>,
+            which has since hosted the source code in a <a href="http://www.geoapi.org/source-repository.html">Subversion repository</a>.
+            It was then that the project assumed the name “GeoAPI”, and used the interfaces of the <abbr>OGC</abbr> specification 01-009 as a starting point.
+          </p><p>
+            A few months later, the <abbr>OGC</abbr> launched the <a href="https://www.ogc.org/standards/go"><abbr>GO</abbr>-1: <i>Geographic Objects</i></a> project,
+            which pursued goals similar to those of GeoAPI.
+            In the meantime, the <abbr>OGC</abbr> abandonned some of their specifications in favor of <abbr>ISO</abbr> standards.
+            GeoAPI and <abbr>GO-1</abbr> worked jointly to rework the GeoAPI interfaces and base them on the new <abbr>ISO</abbr> norms.
+            Their first interation, <a href="http://www.geoapi.org/1.0/index.html">GeoAPI 1.0</a>,
+            served as a starting point for the first draft of the <abbr>OGC</abbr> specification 03-064 by the <abbr>GO</abbr>-1 working group.
+            The final version of this specification became an <abbr>OGC</abbr> standard in 2005,
+            and <a href="http://www.geoapi.org/2.0/index.html">GeoAPI 2.0</a> was published at that time.
+          </p><p>
+            The <abbr>GO</abbr>-1 project was largely supported by a company called <i>Polexis</i>.
+            Its acquisition by <i>Sys Technology</i>, and the change in priorities under the new owners,
+            brought a halt to the <abbr>GO</abbr>-1 project, which in turn slowed development on GeoAPI.
+            In order to resume development, a new working group entitled “GeoAPI 3.0” was created at the <abbr>OGC</abbr>.
+            This group took a narrower focus compared to GeoAPI 2.0, concentrating on the most stable interfaces, and putting the others
+            — such as geometries — in a module entitled “<a href="http://www.geoapi.org/geoapi-pending/index.html">pending</a>”, for future consideration.
+            <a href="http://www.geoapi.org/3.0/index.html">GeoAPI 3.0</a> became an <a href="https://www.ogc.org/standards/geoapi"><abbr>OGC</abbr> standard</a> in 2011.
+            This version was the first to be deployed in the <a href="http://search.maven.org/#search|ga|1|geoapi">Maven central repository</a>.
+          </p>
+        </article>
+      </details>
+    </section>
+  </body>
+</html>

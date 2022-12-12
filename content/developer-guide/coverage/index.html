@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html>
+
+<!--
+  Licensed to the Apache Software Foundation (ASF) under one
+  or more contributor license agreements.  See the NOTICE file
+  distributed with this work for additional information
+  regarding copyright ownership.  The ASF licenses this file
+  to you under the Apache License, Version 2.0 (the
+  "License"); you may not use this file except in compliance
+  with the License.  You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing,
+  software distributed under the License is distributed on an
+  "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+  KIND, either express or implied.  See the License for the
+  specific language governing permissions and limitations
+  under the License.
+-->
+
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:xi="http://www.w3.org/2001/XInclude" xml:lang="en">
+  <head>
+    <title>Coverage</title>
+    <meta charset="UTF-8"/>
+    <link rel="stylesheet" type="text/css" href="../book.css"/>
+  </head>
+  <body>
+    <!--
+      Content below this point is copied in "/asf-staging/book/en/developer-guide.html" file
+      by the `org.apache.sis.internal.book.Assembler` class in `sis-build-helper` module.
+    -->
+    <section>
+      <header>
+        <h1 id="Coverage">Data as coverage</h1>
+      </header>
+      <p>
+        Images, or <dfn>rasters</dfn>, are a particular case of a data structure called a <dfn>coverage</dfn>.
+        A coverage is a function which returns attribute values from an input coordinate.
+        The set of valid input values is called the <dfn>domain</dfn>, while the set of possible output values is called the <dfn>range</dfn>.
+        The domain is often the spatio-temporal area covered by the data,
+        but <abbr>SIS</abbr> does not prevents coverages from extending to other dimensions.
+        For example, thermodynamic studies often use an area where the dimensions are temperature and pressure.
+      </p>
+      <div class="example"><p><b>Example:</b>
+        Digital Elevation Models (<abbr>DEM</abbr>) are often represented as images where pixel values are terrain elevation values.
+        This image can be used as the basis of an <var>h</var> = <var>f</var>(φ,λ) function providing
+        (eventually by interpolations between pixels) the elevation <var>h</var> at the geographic coordinate (φ,λ).
+        In that case, the <var>f</var> function is the <dfn>coverage</dfn>,
+        the geographic envelope of the image is the <dfn>domain</dfn>,
+        and the set of pixel values <var>h</var> that this function can return is the <dfn>range</dfn>.
+      </p></div>
+      <p>
+        Ranges may be finite or infinite, and are not necessarily numerical.
+        For example, the values returned by a coverage may come from an enumeration (“this is a forest”, “this is a lake”, <i>etc.</i>).
+        However in the enumeration case, interpolations are not allowed.
+        A coverage without interpolation is called a <dfn>discrete coverage</dfn>
+        while a coverage that allows interpolations is called a <dfn>continuous coverage</dfn>.
+      </p><p>
+        Different types of coverages may also be characterized by the geometry of their cells.
+        In particular, a coverage is not necessarily composed of quadrilateral cells.
+        However, given that quadrilateral cells are by far the most frequent (since this is the usual geometry of image pixels),
+        we use the <dfn>grid coverage</dfn> term to specify coverages composed of such cells.
+      </p>
+
+      <xi:include href="GridGeometry.html"/>
+      <xi:include href="SampleDimension.html"/>
+    </section>
+  </body>
+</html>

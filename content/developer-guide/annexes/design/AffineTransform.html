@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html>
+
+<!--
+  Licensed to the Apache Software Foundation (ASF) under one
+  or more contributor license agreements.  See the NOTICE file
+  distributed with this work for additional information
+  regarding copyright ownership.  The ASF licenses this file
+  to you under the Apache License, Version 2.0 (the
+  "License"); you may not use this file except in compliance
+  with the License.  You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing,
+  software distributed under the License is distributed on an
+  "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+  KIND, either express or implied.  See the License for the
+  specific language governing permissions and limitations
+  under the License.
+-->
+
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:xi="http://www.w3.org/2001/XInclude" xml:lang="en">
+  <head>
+    <title>AffineTransform</title>
+    <meta charset="UTF-8"/>
+    <link rel="stylesheet" type="text/css" href="../../book.css"/>
+  </head>
+  <body>
+    <!--
+      Content below this point is copied in "/asf-staging/book/en/developer-guide.html" file
+      by the `org.apache.sis.internal.book.Assembler` class in `sis-build-helper` module.
+    -->
+    <section>
+      <header>
+        <h3 id="AffineTransformAPI">Integration with graphical libraries</h3>
+      </header>
+      <p>
+        Affine transforms, introduced <a href="#AffineTransform">earlier</a>, are extensively used by Apache <abbr>SIS</abbr>.
+        About all graphical libraries support some kind of coordinate operations, usually as <dfn>affine transforms</dfn>
+        or a slight generalization like <dfn>perspective transforms</dfn>.
+        Each library defines its own <abbr>API</abbr>. Some examples are listed below:
+      </p>
+      <table>
+        <caption>Affine transform implementations in graphical libraries</caption>
+        <tr><th>Library</th>                                  <th>Transform implementation</th>                          <th>Dimensions</th></tr>
+        <tr><td>Java2D</td>                                   <td><code>java.awt.geom.AffineTransform</code></td>        <td>2</td></tr>
+        <tr><td>Java3D</td>                                   <td><code>javax.media.j3d.Transform3D</code></td>          <td>3</td></tr>
+        <tr><td>JavaFX</td>                                   <td><code>javafx.scene.transform.Affine</code></td>        <td>2 or 3</td></tr>
+        <tr><td>Java Advanced Imaging (<abbr>JAI</abbr>)</td> <td><code>javax.media.jai.PerspectiveTransform</code></td> <td>2</td></tr>
+        <tr><td>Android</td>                                  <td><code>android.graphics.Matrix</code></td>              <td>2</td></tr>
+      </table>
+      <p>
+        However in many cases, affine or perspective transforms are the only kind of coordinate operations supported by the graphical library.
+        Apache <abbr>SIS</abbr> needs to handle a wider range of operations, in which affine transforms are only special cases.
+        In particular most map projections and datum shifts cannot be represented by affine transforms.
+        <abbr>SIS</abbr> also needs to support arbitrary number of dimensions,
+        while above-cited <abbr>API</abbr> restrict the use to a fixed number of dimensions.
+        For those reasons <abbr>SIS</abbr> cannot use directly the above-cited <abbr>API</abbr>.
+        Instead, <abbr>SIS</abbr> uses the more abstract <code>org.opengis.referencing.transform.MathTransform</code> interface.
+        But in the special case where the transform is actually affine, <abbr>SIS</abbr> may try to use an existing implementation,
+        in particular Java2D. The following Java code can be used in situations where the Java2D object is desired:
+      </p>
+
+<pre><code>MathTransform mt = ...;    // Any math transform created by Apache SIS.
+if (mt instanceof AffineTransform) {
+    AffineTransform at = (AffineTransform) mt;
+    // Use Java2D API from here.
+}</code></pre>
+
+      <p>
+        Apache <abbr>SIS</abbr> uses Java2D on a <em>best effort</em> basis only.
+        The above cast is not guaranteed to succeed,
+        even when the <code>MathTransform</code> meets the requirements allowing Java2D usage.
+      </p>
+    </section>
+  </body>
+</html>

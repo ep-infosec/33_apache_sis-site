@@ -1,0 +1,296 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html>
+
+<!--
+  Licensed to the Apache Software Foundation (ASF) under one
+  or more contributor license agreements.  See the NOTICE file
+  distributed with this work for additional information
+  regarding copyright ownership.  The ASF licenses this file
+  to you under the Apache License, Version 2.0 (the
+  "License"); you may not use this file except in compliance
+  with the License.  You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing,
+  software distributed under the License is distributed on an
+  "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+  KIND, either express or implied.  See the License for the
+  specific language governing permissions and limitations
+  under the License.
+-->
+
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:xi="http://www.w3.org/2001/XInclude" xml:lang="en">
+  <head>
+    <title>CoordinateOperations</title>
+    <meta charset="UTF-8"/>
+    <link rel="stylesheet" type="text/css" href="../book.css"/>
+  </head>
+  <body>
+    <!--
+      Content below this point is copied in "/asf-staging/book/en/developer-guide.html" file
+      by the `org.apache.sis.internal.book.Assembler` class in `sis-build-helper` module.
+    -->
+    <section>
+      <header>
+        <h2 id="CoordinateOperations">Coordinate operations</h2>
+      </header>
+      <p>
+        Given a <em>source</em> coordinate reference system (<abbr>CRS</abbr>) in which existing coordinate values are expressed,
+        and a <em>target</em> coordinate reference system in which coordinate values are desired,
+        Apache <abbr>SIS</abbr> can provide a <em>coordinate operation</em> performing the conversion or transformation work.
+        The search for coordinate operations may use a third argument, optional but recommended,
+        which is the geographic area of the data to transform.
+        That later argument is recommended because coordinate operations are often valid only in a some geographic area
+        (typically a particular country or state), and many transformations may exist
+        for the same pair of source and target <abbr>CRS</abbr> but different domain of validity.
+        Different coordinate operations may also be different compromises between accuracy and their domain of validity,
+        and specifying a smaller area of interest may allow Apache <abbr>SIS</abbr> to select a more accurate operation.
+      </p>
+      <div class="example"><p><b>Example:</b>
+        the <abbr>EPSG</abbr> geodetic dataset (as of version 7.9) defines 77 coordinate operations from the
+        <cite>North American Datum 1927</cite> (EPSG:4267) coordinate reference system to the
+        <cite>World Geodetic System 1984</cite> (EPSG:4326) <abbr>CRS</abbr>.
+        There is one operation valid only for coordinate transformations in Québec,
+        another operation valid for coordinate transformations in Texas west of 100°W,
+        another operation for the same state but east of 100°W, <i>etc</i>.
+        If the user did not specified any geographic area of interest,
+        then Apache <abbr>SIS</abbr> defaults on the coordinate operation which is valid in the largest area.
+        In this example, the “largest area” criterion results in the selection of a coordinate operation valid for Canada,
+        not <abbr>USA</abbr>.</p>
+      </div>
+
+
+      <h3 id="CRS.findOperation">Getting a coordinate operation</h3>
+      <p>
+        The easiest way to obtain a coordinate operation from above-cited information
+        is to use the <code>org.apache.sis.referencing.CRS</code> convenience class:
+      </p>
+
+<pre><code>CoordinateOperation cop = <code class="SIS">CRS.findOperation</code>(sourceCRS, targetCRS, areaOfInterest);</code></pre>
+
+      <p>
+        Among the information provided by <code>CoordinateOperation</code> object, the following are of special interest:
+      </p>
+      <ul class="verbose">
+        <li>The <dfn>domain of validity</dfn>, either as a textual description (e.g. “Canada – onshore and offshore”)
+            or with the coordinates of a geographic bounding box.</li>
+        <li>The <dfn>positional accuracy</dfn>, which may be anything from 1 centimetre to a few kilometres.</li>
+        <li>The coordinate operation subtype. Among them, two sub-types provide the same functionalities but with a significant conceptual difference:
+          <ul class="verbose">
+            <li>
+              Coordinate <strong>conversions</strong> are fully determined by mathematical formulas.
+              Those conversions would have an infinite precision if it was not for the unavoidable rounding errors
+              inherent to floating-point calculations.
+              Map projections are in this category.
+            </li><li>
+              Coordinate <strong>transformations</strong> are defined empirically.
+              They often have errors of a few metres which are not caused by limitation in computer accuracy.
+              Those errors exist because transformations are only approximations of a more complex reality.
+              Datum shifts from <abbr title="North American Datum 1927">NAD27</abbr> to <abbr title="North American Datum 1983">NAD83</abbr>
+              are in this category.
+            </li>
+          </ul>
+        </li>
+      </ul>
+      <p>
+        If the coordinate operation is an instance of <code>Transformation</code>,
+        then the instance selected by <abbr>SIS</abbr> may be one among many possibilities depending on the area of interest.
+        Furthermore its accuracy is usually less than the centimetric accuracy that we can expect from a <code>Conversion</code>.
+        Consequently verifying the domain of validity and the positional accuracy declared in the transformation metadata is of particular importance.
+      </p>
+
+      <h3 id="MathTransform">Executing an operation on coordinate values</h3>
+      <p>
+        The <code>CoordinateOperation</code> object introduced in above section provides high-level informations
+        (source and target <abbr>CRS</abbr>, domain of validity, positional accuracy, operation parameters, <i>etc</i>).
+        The actual mathematical work is performed by a separated object obtained by a call to <code>CoordinateOperation.getMathTransform()</code>.
+        At the difference of <code>CoordinateOperation</code> instances, <code>MathTransform</code> instances do not carry any metadata.
+        They are kind of black box which know nothing about the source and target <abbr>CRS</abbr>
+        (actually the same <code>MathTransform</code> can be used for different pairs of <abbr>CRS</abbr> if the mathematical work is the same), domain or accuracy.
+        Furthermore <code>MathTransform</code> may be implemented in a very different way than what <code>CoordinateOperation</code> said.
+        In particular many conceptually different coordinate operations (e.g. longitude rotations,
+        change of units of measurement, conversions between two Mercator projections on the same datum, <i>etc.</i>)
+        are implemented by <code>MathTransform</code> as <a href="#AffineTransform">affine transforms</a> and concatenated for efficiency,
+        even if <code>CoordinateOperation</code> reports them as a chain of Mercator and other operations.
+        The “<a href="#CoordinateOperationSteps">conceptual versus real chain of coordinate operations</a>” section explains the differences in more details.
+      </p>
+      <p>
+        The following Java code performs a map projection from geographic coordinates on the <cite>World Geodetic System 1984</cite> (<abbr>WGS84</abbr>) datum
+        coordinates in the <cite>WGS 84 / UTM zone 33N</cite> coordinate reference system.
+        In order to make the example a little bit simpler, this code uses predefined constants given by the <code>CommonCRS</code> convenience class.
+        But more advanced applications will typically use <abbr>EPSG</abbr> codes instead.
+        Note that all geographic coordinates below express latitude before longitude.
+      </p>
+
+<pre><code>import org.opengis.geometry.DirectPosition;
+import org.opengis.referencing.crs.CoordinateReferenceSystem;
+import org.opengis.referencing.operation.CoordinateOperation;
+import org.opengis.referencing.operation.TransformException;
+import org.opengis.util.FactoryException;
+import org.apache.sis.referencing.CRS;
+import org.apache.sis.referencing.CommonCRS;
+import org.apache.sis.geometry.DirectPosition2D;
+
+public class MyApp {
+    public static void main(String[] args) throws FactoryException, TransformException {
+        CoordinateReferenceSystem sourceCRS = CommonCRS.WGS84.geographic();
+        CoordinateReferenceSystem targetCRS = CommonCRS.WGS84.universal(40, 14);  // Get whatever zone is valid for 14°E.
+        CoordinateOperation operation = <code class="SIS">CRS.findOperation</code>(sourceCRS, targetCRS, null);
+
+        // The above lines are costly and should be performed only once before to project many points.
+        // In this example, the operation that we got is valid for coordinates in geographic area from
+        // 12°E to 18°E (UTM zone 33) and 0°N to 84°N.
+
+        DirectPosition ptSrc = new DirectPosition2D(40, 14);           // 40°N 14°E
+        DirectPosition ptDst = operation.getMathTransform().transform(ptSrc, null);
+
+        System.out.println("Source: " + ptSrc);
+        System.out.println("Target: " + ptDst);
+    }
+}</code></pre>
+
+
+      <h3 id="TransformDerivative">Partial derivatives of coordinate operations</h3>
+      <p>
+        Previous section shows how to project a coordinate from one reference system to another one.
+        There is another, less known, operation which does not compute the projected coordinates of a given point,
+        but instead the derivative of the projection function at that point.
+        Let <var>P</var> be a map projection converting degrees of latitude and longitude (<var>φ</var>, <var>λ</var>)
+        into projected coordinates (<var>x</var>, <var>y</var>) in metres.
+        The formula below represents the map projection result as a column matrix
+        (reason will become clearer soon):
+      </p>
+
+      <div class="row-of-boxes">
+        <div style="min-width:350px; padding-right:60px">
+          <div class="caption">Equation</div>
+          <math xmlns="http://www.w3.org/1998/Math/MathML" display="block" alttext="MathML capable browser required">
+            <mi>P</mi><mo>(</mo><mi>φ</mi><mo>,</mo><mi>λ</mi><mo>)</mo>
+            <mo>=</mo>
+            <mrow>
+              <mo>[</mo>
+              <mtable>
+                <mtr><mtd><mi>x</mi><mo>(</mo><mi>φ</mi><mo>,</mo><mi>λ</mi><mo>)</mo></mtd></mtr>
+                <mtr><mtd><mi>y</mi><mo>(</mo><mi>φ</mi><mo>,</mo><mi>λ</mi><mo>)</mo></mtd></mtr>
+              </mtable>
+              <mo>]</mo>
+            </mrow>
+          </math>
+        </div>
+        <div style="min-width:500px; padding-left:60px">
+          <div class="caption">Java code</div>
+<pre style="margin:0"><code>DirectPosition geographic = new DirectPosition2D(<var>φ</var>, <var>λ</var>);
+DirectPosition projected = <var><b>P</b></var>.transform(geographic, null);
+double <var>x</var> = projected.getOrdinate(0);
+double <var>y</var> = projected.getOrdinate(1);</code></pre>
+        </div>
+      </div>
+
+      <p>The map projection partial derivate at this point can be represented by a Jacobian matrix:</p>
+
+      <div class="row-of-boxes">
+        <div style="min-width:350px; padding-right:60px">
+          <div class="caption">Equation</div>
+          <math xmlns="http://www.w3.org/1998/Math/MathML" display="block" alttext="MathML capable browser required">
+            <msup><mi>P</mi><mo>′</mo></msup><mo>(</mo><mi>φ</mi><mo>,</mo><mi>λ</mi><mo>)</mo>
+            <mo>=</mo>
+            <msub><mi>JAC</mi><mrow><mi>P</mi><mo>(</mo><mi>φ</mi><mo>,</mo><mi>λ</mi><mo>)</mo></mrow></msub>
+            <mo>=</mo>
+            <mrow>
+              <mo>[</mo>
+              <mtable>
+                <mtr>
+                  <mtd><mfrac><mrow><mo>∂</mo><mi>x</mi><mo>(</mo><mi>φ</mi><mo>,</mo><mi>λ</mi><mo>)</mo></mrow><mrow><mo>∂</mo><mi>φ</mi></mrow></mfrac></mtd>
+                  <mtd><mfrac><mrow><mo>∂</mo><mi>x</mi><mo>(</mo><mi>φ</mi><mo>,</mo><mi>λ</mi><mo>)</mo></mrow><mrow><mo>∂</mo><mi>λ</mi></mrow></mfrac></mtd>
+                </mtr>
+                <mtr>
+                  <mtd><mfrac><mrow><mo>∂</mo><mi>y</mi><mo>(</mo><mi>φ</mi><mo>,</mo><mi>λ</mi><mo>)</mo></mrow><mrow><mo>∂</mo><mi>φ</mi></mrow></mfrac></mtd>
+                  <mtd><mfrac><mrow><mo>∂</mo><mi>y</mi><mo>(</mo><mi>φ</mi><mo>,</mo><mi>λ</mi><mo>)</mo></mrow><mrow><mo>∂</mo><mi>λ</mi></mrow></mfrac></mtd>
+                </mtr>
+              </mtable>
+              <mo>]</mo>
+            </mrow>
+          </math>
+        </div>
+        <div style="min-width:500px; padding-left:60px">
+          <div class="caption">Java code</div>
+<pre style="margin:0"><code>DirectPosition geographic = new DirectPosition2D(<var>φ</var>, <var>λ</var>);
+Matrix jacobian = <var><b>P</b></var>.derivative(geographic);
+double dx_dλ = jacobian.getElement(0,1);
+double dy_dφ = jacobian.getElement(1,0);</code></pre>
+        </div>
+      </div>
+
+      <p>
+        The first matrix column tells us that if we apply a displacement of 1° of latitude from the (<var>φ</var>, <var>λ</var>) position,
+        — in other words if we move at the (<var>φ</var> + 1, <var>λ</var>) geographic position —
+        then the projected coordinates would be displaced by (∂<var>x</var>, ∂<var>λ</var>) metres
+        — in other words they would become (<var>x</var> + ∂<var>x</var>, <var>y</var> + ∂<var>y</var>) —
+        if the map projection is approximated by an affine transform valid at the (<var>φ</var>, <var>λ</var>) position.
+        Similarly the last matrix column gives us the displacement that happen on the projected coordinate
+        if we apply a displacement of 1° of longitude on the source geographic coordinate under the same assumption.
+        We can visualize such displacements in a figure like below.
+        This figure shows the derivative at two points, <var>P</var><sub>1</sub> and <var>P</var><sub>2</sub>,
+        for emphasing that the result change for every points.
+        In that figure, vectors <var>U</var> et <var>V</var> stand for the first and second column respectively
+        in the Jacobian matrices.
+      </p>
+
+      <div class="row-of-boxes">
+        <div>
+          <img style="border: solid 1px" src="../../../static/book/images/Derivatives.png" alt="Example of a map projection derivative"/>
+        </div><div>
+          <p>where vectors are related to the matrix by:</p>
+          <math xmlns="http://www.w3.org/1998/Math/MathML" display="block" alttext="MathML capable browser required">
+            <mtable><mtr>
+              <mtd>
+                <mover><mi>U</mi><mo>→</mo></mover><mo>=</mo>
+                <mrow>
+                  <mo>[</mo>
+                  <mtable>
+                    <mtr>
+                      <mtd><mfrac><mrow><mo>∂</mo><mi>x</mi></mrow><mrow><mo>∂</mo><mi>φ</mi></mrow></mfrac></mtd>
+                    </mtr>
+                    <mtr>
+                      <mtd><mfrac><mrow><mo>∂</mo><mi>y</mi></mrow><mrow><mo>∂</mo><mi>φ</mi></mrow></mfrac></mtd>
+                    </mtr>
+                  </mtable>
+                  <mo>]</mo>
+                </mrow>
+              </mtd>
+              <mtd><mtext>et</mtext></mtd>
+              <mtd>
+                <mover><mi>V</mi><mo>→</mo></mover><mo>=</mo>
+                <mrow>
+                  <mo>[</mo>
+                  <mtable>
+                    <mtr>
+                      <mtd><mfrac><mrow><mo>∂</mo><mi>x</mi></mrow><mrow><mo>∂</mo><mi>λ</mi></mrow></mfrac></mtd>
+                    </mtr>
+                    <mtr>
+                      <mtd><mfrac><mrow><mo>∂</mo><mi>y</mi></mrow><mrow><mo>∂</mo><mi>λ</mi></mrow></mfrac></mtd>
+                    </mtr>
+                  </mtable>
+                  <mo>]</mo>
+                </mrow>
+              </mtd>
+            </mtr></mtable>
+          </math>
+        </div>
+      </div>
+
+      <p>
+        Above figure shows one usage of map projection derivatives:
+        they provide the direction of parallels and meridians at a given location in a map projection.
+        One can use that information for determining if axes have been swapped or their direction reversed.
+        But the usefulness of map projection derivatives goes further.
+        The <a href="#JacobianUsage">annex</a> explains how derivatives are used by the Apache <abbr>SIS</abbr>
+        implementation of envelope and raster reprojections.
+      </p>
+
+
+      <xi:include href="CoordinateOperationSteps.html"/>
+    </section>
+  </body>
+</html>

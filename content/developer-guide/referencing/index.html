@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html>
+
+<!--
+  Licensed to the Apache Software Foundation (ASF) under one
+  or more contributor license agreements.  See the NOTICE file
+  distributed with this work for additional information
+  regarding copyright ownership.  The ASF licenses this file
+  to you under the Apache License, Version 2.0 (the
+  "License"); you may not use this file except in compliance
+  with the License.  You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing,
+  software distributed under the License is distributed on an
+  "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+  KIND, either express or implied.  See the License for the
+  specific language governing permissions and limitations
+  under the License.
+-->
+
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:xi="http://www.w3.org/2001/XInclude" xml:lang="en">
+  <head>
+    <title>Referencing</title>
+    <meta charset="UTF-8"/>
+    <link rel="stylesheet" type="text/css" href="../book.css"/>
+  </head>
+  <body>
+    <!--
+      Content below this point is copied in "/asf-staging/book/en/developer-guide.html" file
+      by the `org.apache.sis.internal.book.Assembler` class in `sis-build-helper` module.
+    -->
+    <section>
+      <header>
+        <h1 id="Referencing">Spatial reference systems</h1>
+      </header>
+      <p>
+        For locating a point on Earth one can use identifiers like city name or postal address
+        — an approach known as <dfn>spatial reference systems by identifiers</dfn> —
+        or use numerical values valid in a given coordinate system like latitudes and longitudes
+        — an approach known as <dfn>spatial reference systems by coordinates</dfn>.
+        Each reference system implies approximations like
+        the choice of a figure of the Earth (geoid, ellipsoid, <i>etc.</i>) used as an approximation of Earth shape,
+        the choice of geometric properties (angles, distances, <i>etc.</i>) to be preserved when a map is shown on plane surface, and
+        a lost of precision when coordinates are transformed to systems using a different <a href="#GeodeticDatum">datum</a>.
+      </p><p>
+        A very common misbelief is that one can avoid this complexity by using a single coordinate reference system
+        (typically <abbr title="World Geodetic System 1984">WGS84</abbr>) as a universal system for all data.
+        The next chapters will explain why the reality is not so simple.
+        Whether a universal reference system can suit an application needs or not depends on the desired positional accuracy
+        and the kind of calculations to be performed with the data.
+        Unless otherwise specified, Apache <abbr>SIS</abbr> aims to represent coordinates on Earth with an accuracy of one centimetre or better.
+        But the accuracy can be altered by various situations:
+      </p>
+      <ul class="verbose">
+        <li>Points should be inside the domain of validity as given by <code>ReferenceSystem.getDomainOfValidity()</code>.</li>
+        <li>Distance measurements in a given map projection are true only is some special locations,
+            named for instance “standards parallels”.</li>
+        <li>Positional accuracy is altered after coordinate transformations.
+            The new accuracy is described by <code>CoordinateOperation.getCoordinateOperationAccuracy()</code>.</li>
+        <li>Finding the most appropriate coordinate transformation parameters require the use of a geodetic dataset like <abbr>EPSG</abbr>.
+            Declaring those parameters within the <abbr>CRS</abbr> (for example with a <code>TOWGS84</code> element) is often not sufficient.</li>
+      </ul>
+      <p>
+        The <code>sis-referencing</code> module provides a set of classes implementing
+        different specializations of the <code>ReferenceSystem</code> interface, together with required components.
+        Those implementations store spatial reference system descriptions, together with metadata like their domain of validity.
+        However those objects do not perform any operation on coordinate values.
+        Coordinates <dfn>conversions</dfn> or <dfn>transformations</dfn> are performed by another family of types,
+        with <code>CoordinateOperation</code> as the root interface.
+        Those types will be discussed in <a href="#CoordinateOperations">another section</a>.
+      </p>
+
+      <xi:include href="ComponentsOfCRS.html"/>
+      <xi:include href="GetCRS.html"/>
+      <xi:include href="AxisOrder.html"/>
+      <xi:include href="CoordinateOperations.html"/>
+    </section>
+  </body>
+</html>

@@ -1,0 +1,205 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html>
+
+<!--
+  Licensed to the Apache Software Foundation (ASF) under one
+  or more contributor license agreements.  See the NOTICE file
+  distributed with this work for additional information
+  regarding copyright ownership.  The ASF licenses this file
+  to you under the Apache License, Version 2.0 (the
+  "License"); you may not use this file except in compliance
+  with the License.  You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing,
+  software distributed under the License is distributed on an
+  "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+  KIND, either express or implied.  See the License for the
+  specific language governing permissions and limitations
+  under the License.
+-->
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+  <head>
+    <title>Envelope</title>
+    <meta charset="UTF-8"/>
+    <link rel="stylesheet" type="text/css" href="../book.css"/>
+  </head>
+  <body>
+    <!--
+      Content below this point is copied in "/asf-staging/book/en/developer-guide.html" file
+      by the `org.apache.sis.internal.book.Assembler` class in `sis-build-helper` module.
+    -->
+    <section>
+      <header>
+        <h2 id="Envelope">Envelopes</h2>
+      </header>
+      <p>
+        Envelopes store minimal and maximal coordinate values of a geometry.
+        Envelopes are <em>not</em> geometries themselves; they are not infinite sets of points (<code>TransfiniteSet</code>).
+        There is no guarantee that all the positions contained within the limits of an envelope are geographically valid.
+        Envelopes must be seen as information about extreme values that might take the coordinates of a geometry as if
+        each dimension were independent of the others, nothing more.
+        Nevertheless, we speak of envelopes as rectangles, cubes or hyper-cubes (depending on the number of dimensions)
+        in order to facilitate discussion, while bearing in mind their non-geometric nature.
+      </p>
+      <div class="example"><p><b>Example:</b>
+        We could test whether a position is within the limits of an envelope.
+        A positive result does not guarantee that the position is within the geometry delimited by the envelope,
+        but a negative result guarantees that it is outside the geometry.
+        We can perform intersection tests in the same way.
+        On the other hand, it makes little sense to apply a rotation to an envelope,
+        as the result may be very different from that which we would obtain by performing a rotation on the original geometry,
+        and then recalculating its envelope.
+      </p></div>
+      <p>
+        An envelope might be represented by two positions corresponding to two opposite corners of a rectangle,
+        cube or hyper-cube.
+        For the first corner, we often take the one whose ordinates all have the maximal value (<code class="OGC">upperCorner</code>).
+        When displayed using a conventional system of coordinates (with <var>y</var> axis values running upwards),
+        these two positions appear respectively in the lower left corner and the upper right corner of a rectangle.
+        Care must be taken with different coordinate systems, however, which may vary the positions of these corners on the screen.
+        The expressions <i>lower corner</i> and <i>upper corner</i> should thus be understood in the mathematical rather than the visual sense.
+      </p>
+
+
+
+      <h3 id="AntiMeridian">Crossing the antimeridian</h3>
+      <p>
+        Minimums and maximums are the values most often assigned to <code class="OGC">lowerCorner</code>
+        and <code class="OGC">upperCorner</code>.
+        But the situation becomes complicated when an envelope crosses the antimeridian (−180° or 180° longitude).
+        For example, an envelope 10° in size may begin at 175° longitude and end at −175°.
+        In this case, the longitude value assigned to <code class="OGC">lowerCorner</code> is greater than that assigned to <code class="OGC">upperCorner</code>.
+        Apache <abbr>SIS</abbr> therefore uses a slightly different definition of these two corners:
+      </p>
+      <ul>
+        <li><b><code class="SIS">lowerCorner</code>:</b>
+          the starting point, if we move along the inside of the envelope in the direction of ascending values.
+        </li>
+        <li><b><code class="SIS">upperCorner</code>:</b>
+          the end-point, if we move along the inside of the envelope in the direction of ascending values.
+        </li>
+      </ul>
+      <p>
+        If the envelope does not cross the antimeridian, these two definitions are equivalent to the selection of minimal and
+        maximal values respectively. This is the case in the green rectangle in the figure below.
+        When the envelope crosses the antimeridian, the <code class="SIS">lowerCorner</code> and the
+        <code class="SIS">upperCorner</code> appear again at the bottom and top of the rectangle
+        (assuming a standard system of coordinates), so their names remain appropriate from a visual standpoint.
+        However, the left and right positions are switched.
+        This case is illustrated by the red rectangle in the figure below.
+      </p>
+      <p style="text-align:center">
+        <img src="../../apidocs/org/apache/sis/geometry/doc-files/AntiMeridian.png"
+             alt="Envelope example with and without anti-meridian spanning."/>
+      </p>
+      <p>
+        The notions of inclusion and intersection, however, are interpreted slightly differently in these two cases.
+        In the usual case where the envelope does not cross the antimeridian, the green rectangle covers a region of inclusion.
+        The regions excluded from this rectangle continue on to infinity in all directions.
+        In other words, the region of inclusion is not repeated every 360°.
+        But in the case of the red rectangle, the information provided by the envelope actually covers a region of exclusion
+        between the two edges of the rectangle. The region of inclusion extends to infinity to the left and right.
+        We could stipulate that all longitudes below −180° or above 180° are considered excluded,
+        but this would be an arbitrary decision that would not be an exact counterpart to the usual case (green rectangle).
+        A developer may wish to use these values, for example, in a mosaic where the map of the world is repeated several times
+        horizontally and each repetition is considered distinct.
+        If developers wish to perform operations as though the regions of inclusion or exclusion were repeated every 360°,
+        they themselves will have to bring the longitudinal values between −180° and 180° in advance.
+        All the <code class="SIS">add(…)</code>, <code class="SIS">contains(…)</code>,
+        <code class="SIS">intersect(…)</code>, etc. functions of all the envelopes defined in the
+        <code>org.apache.sis.geometry</code> package perform their calculations according to this convention.
+      </p>
+      <aside>
+        <h5>Generalizing to other types of axes</h5>
+        <p>
+          This section specifically relates to longitude, as it is the most usual example of a cyclic axis.
+          However, in Apache <abbr>SIS</abbr> envelopes, there is no explicit mention of longitude, or of its 360° cycle.
+          The characteristics of the range of values of each axis (its extremum, units, type of cycle, etc.)
+          are attributes of <code>CoordinateSystemAxis</code> objects,
+          indirectly associated with envelopes via the coordinate reference system.
+          Apache <abbr>SIS</abbr> inspects these attributes to determine the way in which it must perform these operations.
+          Thus, any axis associated with the code <code>RangeMeaning.WRAPAROUND</code> benefit from
+          the same treatment as does longitude.
+          For example, this could be a time axis for climatological data (one “year” represents the average temperature in all the
+          months of January, followed by the average of all the months of February, etc.)
+          This generalization also applies to longitude axes defined by a range of 0° to 360° rather than −180° to 180°.
+        </p>
+      </aside>
+      <p>
+        In order for functions such as <code class="SIS">add(…)</code> to work correctly,
+        all objects involved must use the same coordinate reference system, including the same range of values.
+        Thus an envelope that expresses longitudes in the range [−180 … +180]° is not compatible with an envelope that expresses
+        longitudes in the range [0 … 360]°.
+        The conversions, if necessary, are up to the user
+        (the <code>Envelopes</code> class provides convenience methods to do this).
+        Moreover, the envelope’s coordinates must be included within the system of coordinates,
+        unless the developer explicitly decides to consider (for example) 300° longitude as a position distinct from −60°.
+        The <code>GeneralEnvelope</code> class provides a <code class="SIS">normalize()</code> method to bring
+        coordinates within the desired limits, sometimes at the cost of <var>lower</var> values being higher than
+        <var>upper</var> values.
+      </p>
+      <aside>
+        <h5>The special case of [+0 … −0] range</h5>
+        <p>
+          Java (or more generally, IEEE Standard 754) defines two zero values:
+          a positive zero and a negative zero. These two values are considered equal when we compare them with the <code>==</code> operator in Java.
+          But in <abbr>SIS</abbr> envelopes, they may actually return opposite results for axes using <code>RangeMeaning.WRAPAROUND</code>.
+          An envelope whose range is [0 … 0], [−0 … −0] or [−0 … +0] would normally be considered an empty envelope,
+          but the [+0 … −0] range would in fact be considered to include the entire set of values all around the world.
+          This behaviour conforms to the definition of <code class="SIS">lowerCorner</code> and <code class="SIS">upperCorner</code>,
+          which considers +0 as the starting point, and −0 as the end-point after cycling through all possible values.
+          Such behaviour only occurs for the pair of values +0 and −0, and only in that order.
+          For all other real values, if the condition <code>lower</code> <code>==</code> <code>upper</code> is true,
+          then it is guaranteed that the envelope is empty.
+        </p>
+      </aside>
+
+
+
+      <h3 id="EnvelopeTransform">Transforming to another reference system</h3>
+      <p>
+        Geographic information systems often need to transform an envelope
+        from one Coordinate Reference System (<abbr>CRS</abbr>) to another.
+        But a naive approach transforming the 4 corners is not sufficient.
+        The figure below shows an envelope before a map projection and the geometric shape
+        that we would get if all points (not only the corners) were projected.
+        The resulting geometric shape is more complex than a rectangle because of the curvature caused by the map projection.
+        Computing the envelope that contains the 4 corners of that shape is not enough,
+        because the area in the bottom of the projected shape is lower than the two bottom corners.
+        That surface would be outside the envelope.
+      </p>
+      <div class="row-of-boxes">
+        <div>
+          <div class="caption">Envelope before projection</div>
+          <img style="border: solid 1px; margin-right: 15px" src="../../../static/book/images/GeographicArea.png" alt="Envelope in a geographic CRS"/>
+        </div><div>
+          <div class="caption">Geometric shape after projection</div>
+          <img style="border: solid 1px; margin-left:  15px" src="../../../static/book/images/ConicArea.png" alt="Shape in a projected CRS"/>
+        </div>
+      </div>
+      <p>
+        Sampling a larger number of points reduces the problem but does not resolve it.
+        <a href="#TransformDerivative">Map projection derivatives</a> offer a more efficient way to resolve this problem
+        (see the <a href="#DerivativeAndEnvelope">annex</a> for more mathematical details).
+        Another complication occurs if the envelope contains the North or South pole.
+        For making a long story short, transforming an envelope is <em>a lot</em> more complicated than it looks like.
+        Apache <abbr>SIS</abbr> contains a few utility methods for making this task easier.
+        For transforming an envelope to another <abbr>CRS</abbr> (<cite>WGS 84 / World Mercator</cite> in this example):
+      </p>
+<pre><code>CoordinateReferenceSystem targetCRS = CRS.forCode("EPSG:3395");
+Envelope transformed = Envelopes.transform(envelope, targetCRS);</code></pre>
+      <p>
+        If envelopes are transformed in the goal of using a common <abbr>CRS</abbr> before to compute the union of many envelopes,
+        an additional complication is that each envelope may use a <abbr>CRS</abbr> with a relatively small domain of validity.
+        The union operation needs to find a <abbr>CRS</abbr> valid in a domain large enough for containing all envelopes.
+        It may be a <abbr>CRS</abbr> different than all <abbr>CRS</abbr> used by the source envelopes.
+        Apache <abbr>SIS</abbr> has an utility method for handling this additional complexity.
+        This method accepts an arbitrary number of envelopes that may be in different <abbr>CRS</abbr>:
+      </p>
+      <pre><code>Envelope union = Envelopes.union(envelope1, envelope2, envelope3);</code></pre>
+    </section>
+  </body>
+</html>
